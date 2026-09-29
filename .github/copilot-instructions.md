@@ -1,0 +1,11 @@
+# Contexto del Proyecto: AgroControl IoT
+- Sistema de monitoreo ambiental para silos de almacenamiento de granos (Arroz y Frijoles).
+- Stack: Python 3.11, Streamlit, Pandas, Matplotlib, JSON, CSV.
+- Arquitectura modular obligatoria:
+  - `validaciones.py`: Validación de tipos y rangos físicos (SHT31: 15-40 °C, 40-90% humedad).
+  - `logica.py`: Evaluación de reglas de decisión por tipo de grano (Arroz: 25°C / 65%, Frijol: 22°C / 60%).
+  - `datos.py`: Persistencia en CSV y lectura/escritura de configuración JSON.
+  - `analisis.py`: Transformación con Pandas y estadísticas agrupadas por hora (`dt.hour`).
+  - `graficos.py`: Figuras de Matplotlib para tendencia temporal, frecuencia de relés y distribución.
+  - `app.py`: Interfaz en Streamlit con paneles multimodales e historial.
+- Estilo: funciones cohesivas con tipos declarados, docstrings explicativos y manejo defensivo de archivos inexistentes.
