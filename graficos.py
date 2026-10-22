@@ -6,19 +6,40 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 
-BG_COLOR = "#0B0F19"
-PANEL_COLOR = "#111827"
-GRID_COLOR = "#1F2937"
-TEXT_COLOR = "#F3F4F6"
-MUTED_TEXT = "#9CA3AF"
+BG_COLOR = "#173F2A"
+PANEL_COLOR = "#214D34"
+GRID_COLOR = "#4D7657"
+TEXT_COLOR = "#F0F8EE"
+MUTED_TEXT = "#C4D9C3"
 
-COLOR_PROM = "#3B82F6"
-COLOR_MAX = "#EF4444"
-COLOR_ACT = "#8B5CF6"
-COLOR_PEAK = "#F59E0B"
-COLOR_M1 = "#FF2A6D"
-COLOR_M2 = "#00E5FF"
-COLOR_M3 = "#8B5CF6"
+COLOR_PROM = "#8FD694"
+COLOR_MAX = "#F28F8F"
+COLOR_ACT = "#D8B365"
+COLOR_PEAK = "#F2C14E"
+COLOR_M1 = "#B7E4C7"
+COLOR_M2 = "#74C69D"
+COLOR_M3 = "#52B788"
+
+COLUMNAS_RESUMEN = {
+    "hora",
+    "temp_promedio",
+    "temp_maxima",
+    "humedad_promedio",
+    "activaciones",
+}
+
+
+def resumen_grafico_seguro(df_resumen: pd.DataFrame) -> pd.DataFrame:
+    """Valida el esquema agregado antes de que un gráfico acceda a columnas."""
+    if df_resumen.empty:
+        return pd.DataFrame(columns=sorted(COLUMNAS_RESUMEN))
+    faltantes = COLUMNAS_RESUMEN.difference(df_resumen.columns)
+    if faltantes:
+        raise ValueError(
+            "El resumen horario no tiene las columnas requeridas: "
+            + ", ".join(sorted(faltantes))
+        )
+    return df_resumen
 
 
 def aplicar_estilo_base(fig: plt.Figure, ax: plt.Axes) -> None:
@@ -36,10 +57,28 @@ def aplicar_estilo_base(fig: plt.Figure, ax: plt.Axes) -> None:
     ax.grid(True, linestyle="--", linewidth=0.5, alpha=0.3, color="#374151")
 
 
+def generar_grafico_tendencia(df: pd.DataFrame) -> plt.Figure:
+    """Muestra temperatura, humedad y umbrales a través del tiempo."""
+    figura, eje = plt.subplots(figsize=(10, 3.8), dpi=150)
+    aplicar_estilo_base(figura, eje)
+    if df.empty:
+        eje.text(0.5, 0.5, "Sin datos para analizar", ha="center", va="center", color=TEXT_COLOR)
+    else:
+        trabajo = df.sort_values("fecha_hora")
+        eje.plot(trabajo["fecha_hora"], trabajo["temperatura"], color=COLOR_M2, label="Temperatura °C")
+        eje.plot(trabajo["fecha_hora"], trabajo["humedad"], color=COLOR_PEAK, label="Humedad %")
+        eje.set_title("Tendencia ambiental")
+        eje.legend(facecolor=PANEL_COLOR, labelcolor=TEXT_COLOR)
+        figura.autofmt_xdate()
+    figura.tight_layout()
+    return figura
+
+
 def generar_grafico_barras_separadas(df_resumen: pd.DataFrame) -> plt.Figure:
     """Genera barras separadas de activaciones por hora."""
     figura, eje = plt.subplots(figsize=(7, 3.6), dpi=200)
     aplicar_estilo_base(figura, eje)
+    df_resumen = resumen_grafico_seguro(df_resumen)
     if df_resumen.empty:
         eje.text(0.5, 0.5, "Sin datos para analizar", ha="center", va="center", color=TEXT_COLOR)
     else:
@@ -67,6 +106,7 @@ def generar_grafico_barras_agrupadas(df_resumen: pd.DataFrame) -> plt.Figure:
     """Compara temperatura promedio y máxima en franjas pares."""
     figura, eje = plt.subplots(figsize=(7, 3.6), dpi=200)
     aplicar_estilo_base(figura, eje)
+    df_resumen = resumen_grafico_seguro(df_resumen)
     filtrado = df_resumen[df_resumen["hora"] % 2 == 0].copy() if not df_resumen.empty else df_resumen
     if filtrado.empty:
         eje.text(0.5, 0.5, "Sin datos para analizar", ha="center", va="center", color=TEXT_COLOR)
@@ -123,6 +163,7 @@ def generar_grafico_montana(df_resumen: pd.DataFrame) -> plt.Figure:
     figura.patch.set_facecolor(BG_COLOR)
     eje.set_facecolor(PANEL_COLOR)
 
+    df_resumen = resumen_grafico_seguro(df_resumen)
     if df_resumen.empty:
         eje.text(0.5, 0.5, "Sin datos para analizar", ha="center", va="center", color=TEXT_COLOR)
     else:
@@ -170,9 +211,8 @@ def generar_grafico_montana(df_resumen: pd.DataFrame) -> plt.Figure:
 
 
 # Compatibilidad con versiones previas del dashboard.
-generar_grafico_tendencia = generar_grafico_barras_agrupadas
 generar_grafico_activaciones = generar_grafico_barras_separadas
 generar_grafico_distribucion_estados = generar_grafico_circular
-grafico_tendencia_temporal = generar_grafico_barras_agrupadas
+grafico_tendencia_temporal = generar_grafico_tendencia
 grafico_activaciones_horario = generar_grafico_barras_separadas
 grafico_distribucion_estados = generar_grafico_circular

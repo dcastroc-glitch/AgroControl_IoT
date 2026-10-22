@@ -1,8 +1,10 @@
 # AgroControl IoT
 
-Sistema modular de monitoreo ambiental y automatización para silos de arroz y
-frijol. La aplicación está preparada para recibir lecturas de un SHT31 y
-evaluarlas con dos relés: enfriamiento y extracción de humedad.
+Sistema modular de monitoreo ambiental y gestión de finca para café, frijol,
+maíz y arroz. El dashboard usa simulación local segura, persistencia SQLite,
+exportación CSV, autenticación por roles y alertas SMTP opcionales. Las
+interfaces de sensor y actuadores están separadas para facilitar una futura
+conexión a SHT31 y GPIO de Raspberry Pi.
 
 ## Puesta en marcha
 
@@ -14,6 +16,42 @@ venv\Scripts\activate
 # source venv/bin/activate
 pip install -r requirements.txt
 streamlit run app.py
+```
+
+Accede a `http://localhost:8501`. En el modo local, usa `operador` /
+`agrocontrol` para monitorear y `admin` / `agrocontrol-admin` para cambiar
+parámetros. Cambia la contraseña de administración con
+`AGRO_ADMIN_PASSWORD` antes de cualquier despliegue.
+
+Las mediciones se almacenan en `data/agrocontrol.db` y también pueden
+descargarse como CSV desde el historial. El intervalo predeterminado del
+dashboard es de 2 segundos y puede pausarse desde la barra lateral.
+
+## Gestión de finca
+
+El panel incluye una primera versión operativa para:
+
+- Registrar parcelas y vincular café, frijol, maíz o arroz a una temporada.
+- Simular humedad del suelo por parcela y clasificarla como seca, óptima o
+  húmeda; el adaptador queda preparado para sensores físicos.
+- Registrar gastos en colones costarricenses (CRC).
+- Registrar cosechas en kg y consultar su conversión a quintales.
+- Descontar ventas del inventario y calcular ingresos y margen estimado.
+
+Las tablas agrícolas no generan gastos, ingresos ni cosechas ficticias. Se
+crean vacías y el administrador debe registrar los datos reales. La conversión
+de referencia usada para mostrar quintales es configurable en el módulo de
+datos y actualmente usa 46 kg por quintal; debe confirmarse con la práctica
+comercial de la finca.
+
+Para alertas por correo configura fuera del código:
+
+```text
+AGRO_SMTP_HOST=smtp.example.com
+AGRO_SMTP_PORT=587
+AGRO_SMTP_USER=usuario
+AGRO_SMTP_PASSWORD=secreto
+AGRO_ALERT_EMAIL=destinatario@example.com
 ```
 
 Al iniciar, `datos.py` crea `config/configuracion.json` si falta y genera 120
@@ -53,6 +91,12 @@ python -m unittest discover -s tests -v
 - `analisis.py`: métricas y agrupaciones por hora.
 - `graficos.py`: figuras Matplotlib.
 - `app.py`: panel Streamlit e historial.
+- `sensor.py`: lectura simulada y punto de integración del SHT31.
+- `actuadores.py`: estado seguro de relés simulados.
+- `auth.py`: autenticación local con PBKDF2.
+- `alertas.py`: envío SMTP explícito y configurable.
+- `agrodatos.py`: parcelas, cultivos, suelo, gastos, cosechas, inventario y
+  ventas en SQLite.
 
 ## Mapa conceptual de Fundamentos de Programación
 

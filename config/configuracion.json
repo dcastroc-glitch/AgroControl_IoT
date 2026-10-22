@@ -5,11 +5,15 @@
   "humedad_max_fisica": 90.0,
   "granos": {
     "arroz": {
+      "temp_min": 18.0,
       "temp_max": 25.0,
+      "humedad_min": 50.0,
       "humedad_max": 65.0
     },
     "frijol": {
+      "temp_min": 18.0,
       "temp_max": 22.0,
+      "humedad_min": 50.0,
       "humedad_max": 60.0
     }
   }
